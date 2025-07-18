@@ -159,7 +159,7 @@ class InstagramScraperController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/search-instagram",
+     *     path="/api/search-instagram",
      *     summary="Search and scrape public Instagram profile data by username",
      *     description="Scrapes Instagram profile details like name, bio, followers, following, posts, etc. based on the provided username.",
      *     operationId="searchInstagramApi",

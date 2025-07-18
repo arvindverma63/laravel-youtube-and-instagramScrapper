@@ -14,7 +14,7 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/search-instagram": {
+        "/api/search-instagram": {
             "post": {
                 "tags": [
                     "Instagram"
