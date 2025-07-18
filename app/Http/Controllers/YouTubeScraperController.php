@@ -49,8 +49,31 @@ class YouTubeScraperController extends Controller
             'channel' => 'required|string',
         ]);
 
-        $channelQuery = $request->input('channel');
+        $channelInput = trim($request->input('channel'));
         $maxVideos = 10;
+
+        // Extract identifier from full URL if needed
+        $parsed = parse_url($channelInput);
+        if (isset($parsed['host']) && str_contains($parsed['host'], 'youtube.com')) {
+            $path = $parsed['path'] ?? '';
+            $pathSegments = explode('/', trim($path, '/'));
+
+            if (count($pathSegments)) {
+                if ($pathSegments[0] === 'channel' && isset($pathSegments[1])) {
+                    $channelQuery = $pathSegments[1]; // ID
+                } elseif ($pathSegments[0] === 'c' && isset($pathSegments[1])) {
+                    $channelQuery = $pathSegments[1]; // Legacy custom username
+                } elseif (str_starts_with($pathSegments[0], '@')) {
+                    $channelQuery = ltrim($pathSegments[0], '@'); // Handle like @example
+                } else {
+                    $channelQuery = $channelInput; // fallback
+                }
+            } else {
+                $channelQuery = $channelInput; // fallback
+            }
+        } else {
+            $channelQuery = $channelInput; // plain ID or username
+        }
 
         try {
             // First try fetching channel by ID
@@ -58,17 +81,16 @@ class YouTubeScraperController extends Controller
                 'id' => $channelQuery,
             ]);
 
-            // If no results, try by username
+            // If no results, try by username (or handle)
             if (empty($channelResponse['items'])) {
                 $channelResponse = $this->youtube->channels->listChannels(['snippet', 'statistics', 'brandingSettings'], [
-                    'forUsername' => ltrim($channelQuery, '@'),
+                    'forUsername' => $channelQuery,
                 ]);
             }
 
-            // Check if channel is found
             if (empty($channelResponse['items'])) {
                 Log::warning('Channel not found for query: ' . $channelQuery);
-                return back()->withErrors(['error' => 'Channel not found. Please check the channel ID or username.']);
+                return back()->withErrors(['error' => 'Channel not found. Please check the input.']);
             }
 
             $channel = $channelResponse['items'][0];
@@ -112,10 +134,8 @@ class YouTubeScraperController extends Controller
                 ];
             }
 
-            // Sort videos by view count (descending)
             usort($videos, fn($a, $b) => $b['views'] <=> $a['views']);
 
-            // Store data in session for CSV download
             session(['channelData' => $channelData, 'videos' => $videos]);
 
             return view('youtube.index', compact('channelData', 'videos', 'channelQuery'));
@@ -128,6 +148,7 @@ class YouTubeScraperController extends Controller
             return back()->withErrors(['error' => 'Failed to fetch channel data: ' . $e->getMessage()]);
         }
     }
+
 
     public function download(Request $request)
     {
