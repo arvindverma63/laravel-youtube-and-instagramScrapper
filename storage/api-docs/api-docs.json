@@ -14,13 +14,14 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/api/youtube/search": {
+        "/api/search-youtube": {
             "post": {
                 "tags": [
                     "YouTube"
                 ],
-                "summary": "Search YouTube channel by ID or username and return channel data with top videos",
-                "operationId": "03d274a2d3454c3dd4ba91f23113ceb0",
+                "summary": "Search YouTube channel data by username or URL",
+                "description": "Fetches YouTube channel details and top videos based on a provided username or channel URL.",
+                "operationId": "searchYoutubeApi",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -31,9 +32,9 @@
                                 ],
                                 "properties": {
                                     "channel": {
-                                        "description": "YouTube channel ID or username",
+                                        "description": "YouTube channel username (e.g., @natgeo) or URL (e.g., https://www.youtube.com/@natgeo or https://www.youtube.com/channel/UCpI...)",
                                         "type": "string",
-                                        "example": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                                        "example": "@natgeo or https://www.youtube.com/@natgeo"
                                     }
                                 },
                                 "type": "object"
@@ -43,45 +44,56 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Success response with channel data and top videos",
+                        "description": "YouTube channel data retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "channelQuery": {
+                                            "type": "string",
+                                            "example": "@natgeo"
+                                        },
                                         "channelData": {
                                             "properties": {
                                                 "title": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "National Geographic"
                                                 },
                                                 "description": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "Exploring the world..."
                                                 },
                                                 "subscribers": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "1000000"
                                                 },
                                                 "videoCount": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "example": 500
                                                 },
                                                 "viewCount": {
-                                                    "type": "integer"
+                                                    "type": "integer",
+                                                    "example": 100000000
                                                 },
                                                 "category": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "Education"
                                                 },
                                                 "banner": {
                                                     "type": "string",
-                                                    "format": "url"
+                                                    "example": "https://..."
                                                 },
                                                 "thumbnail": {
                                                     "type": "string",
-                                                    "format": "url"
+                                                    "example": "https://..."
                                                 },
                                                 "publishedAt": {
                                                     "type": "string",
-                                                    "format": "date-time"
+                                                    "example": "2005-11-15T12:00:00Z"
                                                 },
                                                 "customUrl": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "example": "@natgeo"
                                                 }
                                             },
                                             "type": "object"
@@ -91,37 +103,40 @@
                                             "items": {
                                                 "properties": {
                                                     "title": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "example": "Amazing Wildlife"
                                                     },
                                                     "videoId": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "example": "dQw4w9WgXcQ"
                                                     },
                                                     "thumbnail": {
                                                         "type": "string",
-                                                        "format": "url"
+                                                        "example": "https://..."
                                                     },
                                                     "views": {
-                                                        "type": "integer"
+                                                        "type": "integer",
+                                                        "example": 100000
                                                     },
                                                     "publishedAt": {
                                                         "type": "string",
-                                                        "format": "date-time"
+                                                        "example": "2023-01-01T12:00:00Z"
                                                     },
                                                     "description": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "example": "A documentary..."
                                                     },
                                                     "likes": {
-                                                        "type": "integer"
+                                                        "type": "integer",
+                                                        "example": 5000
                                                     },
                                                     "comments": {
-                                                        "type": "integer"
+                                                        "type": "integer",
+                                                        "example": 200
                                                     }
                                                 },
                                                 "type": "object"
                                             }
-                                        },
-                                        "channelQuery": {
-                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -129,11 +144,11 @@
                             }
                         }
                     },
-                    "400": {
-                        "description": "Validation error or channel not found"
+                    "422": {
+                        "description": "Validation Error"
                     },
                     "500": {
-                        "description": "YouTube API failure"
+                        "description": "YouTube API error"
                     }
                 }
             }
