@@ -14,6 +14,97 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/search-instagram": {
+            "post": {
+                "tags": [
+                    "Instagram"
+                ],
+                "summary": "Search and scrape public Instagram profile data by username",
+                "description": "Scrapes Instagram profile details like name, bio, followers, following, posts, etc. based on the provided username.",
+                "operationId": "searchInstagramApi",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "description": "Instagram username to be searched",
+                                        "type": "string",
+                                        "example": "natgeo"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Instagram profile data retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "username": {
+                                            "type": "string",
+                                            "example": "natgeo"
+                                        },
+                                        "profileData": {
+                                            "properties": {
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "natgeo"
+                                                },
+                                                "full_name": {
+                                                    "type": "string",
+                                                    "example": "National Geographic"
+                                                },
+                                                "bio": {
+                                                    "type": "string",
+                                                    "example": "Experience the world through the eyes of National Geographic photographers."
+                                                },
+                                                "followers": {
+                                                    "type": "integer",
+                                                    "example": 28300000
+                                                },
+                                                "following": {
+                                                    "type": "integer",
+                                                    "example": 134
+                                                },
+                                                "posts": {
+                                                    "type": "integer",
+                                                    "example": 25000
+                                                },
+                                                "account_type": {
+                                                    "type": "string",
+                                                    "example": "Business"
+                                                },
+                                                "profile_url": {
+                                                    "type": "string",
+                                                    "example": "https://www.instagram.com/natgeo"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    },
+                    "500": {
+                        "description": "Instagram scraping failed"
+                    }
+                }
+            }
+        },
         "/api/youtube/search": {
             "post": {
                 "tags": [
@@ -140,6 +231,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Instagram",
+            "description": "Instagram"
+        },
         {
             "name": "YouTube",
             "description": "YouTube"
