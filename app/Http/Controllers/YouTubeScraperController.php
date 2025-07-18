@@ -196,84 +196,104 @@ class YouTubeScraperController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/youtube/search",
-     *     summary="Search YouTube channel by ID or username and return channel data with top videos",
+     *     path="/api/search-youtube",
+     *     summary="Search YouTube channel data by username or URL",
+     *     description="Fetches YouTube channel details and top videos based on a provided username or channel URL.",
+     *     operationId="searchYoutubeApi",
      *     tags={"YouTube"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
      *             required={"channel"},
-     *             @OA\Property(property="channel", type="string", example="UC_x5XG1OV2P6uZZ5FSM9Ttw", description="YouTube channel ID or username")
+     *             @OA\Property(
+     *                 property="channel",
+     *                 type="string",
+     *                 example="@natgeo or https://www.youtube.com/@natgeo",
+     *                 description="YouTube channel username (e.g., @natgeo) or URL (e.g., https://www.youtube.com/@natgeo or https://www.youtube.com/channel/UCpI...)"
+     *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Success response with channel data and top videos",
+     *         description="YouTube channel data retrieved successfully",
      *         @OA\JsonContent(
+     *             @OA\Property(property="channelQuery", type="string", example="@natgeo"),
      *             @OA\Property(property="channelData", type="object",
-     *                 @OA\Property(property="title", type="string"),
-     *                 @OA\Property(property="description", type="string"),
-     *                 @OA\Property(property="subscribers", type="string"),
-     *                 @OA\Property(property="videoCount", type="integer"),
-     *                 @OA\Property(property="viewCount", type="integer"),
-     *                 @OA\Property(property="category", type="string"),
-     *                 @OA\Property(property="banner", type="string", format="url"),
-     *                 @OA\Property(property="thumbnail", type="string", format="url"),
-     *                 @OA\Property(property="publishedAt", type="string", format="date-time"),
-     *                 @OA\Property(property="customUrl", type="string"),
+     *                 @OA\Property(property="title", type="string", example="National Geographic"),
+     *                 @OA\Property(property="description", type="string", example="Exploring the world..."),
+     *                 @OA\Property(property="subscribers", type="string", example="1000000"),
+     *                 @OA\Property(property="videoCount", type="integer", example=500),
+     *                 @OA\Property(property="viewCount", type="integer", example=100000000),
+     *                 @OA\Property(property="category", type="string", example="Education"),
+     *                 @OA\Property(property="banner", type="string", example="https://..."),
+     *                 @OA\Property(property="thumbnail", type="string", example="https://..."),
+     *                 @OA\Property(property="publishedAt", type="string", example="2005-11-15T12:00:00Z"),
+     *                 @OA\Property(property="customUrl", type="string", example="@natgeo")
      *             ),
      *             @OA\Property(property="videos", type="array",
      *                 @OA\Items(
-     *                     @OA\Property(property="title", type="string"),
-     *                     @OA\Property(property="videoId", type="string"),
-     *                     @OA\Property(property="thumbnail", type="string", format="url"),
-     *                     @OA\Property(property="views", type="integer"),
-     *                     @OA\Property(property="publishedAt", type="string", format="date-time"),
-     *                     @OA\Property(property="description", type="string"),
-     *                     @OA\Property(property="likes", type="integer"),
-     *                     @OA\Property(property="comments", type="integer"),
+     *                     @OA\Property(property="title", type="string", example="Amazing Wildlife"),
+     *                     @OA\Property(property="videoId", type="string", example="dQw4w9WgXcQ"),
+     *                     @OA\Property(property="thumbnail", type="string", example="https://..."),
+     *                     @OA\Property(property="views", type="integer", example=100000),
+     *                     @OA\Property(property="publishedAt", type="string", example="2023-01-01T12:00:00Z"),
+     *                     @OA\Property(property="description", type="string", example="A documentary..."),
+     *                     @OA\Property(property="likes", type="integer", example=5000),
+     *                     @OA\Property(property="comments", type="integer", example=200)
      *                 )
-     *             ),
-     *             @OA\Property(property="channelQuery", type="string")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
-     *         response=400,
-     *         description="Validation error or channel not found"
+     *         response=422,
+     *         description="Validation Error"
      *     ),
      *     @OA\Response(
      *         response=500,
-     *         description="YouTube API failure"
+     *         description="YouTube API error"
      *     )
      * )
      */
-
     public function searchYoutubeApi(Request $request)
     {
         $request->validate([
-            'channel' => 'required|string',
+            'channel' => 'required|string|regex:/^(@[a-zA-Z0-9._]+|https:\/\/www\.youtube\.com\/(channel\/[a-zA-Z0-9_-]+|@[a-zA-Z0-9._]+))$/', // Updated regex to allow username or URL
         ]);
 
         $channelQuery = $request->input('channel');
         $maxVideos = 10;
 
         try {
-            // First try fetching channel by ID
-            $channelResponse = $this->youtube->channels->listChannels(['snippet', 'statistics', 'brandingSettings'], [
-                'id' => $channelQuery,
-            ]);
+            // Extract channel ID or username from input
+            $channelId = null;
+            $username = null;
 
-            // If no results, try by username
-            if (empty($channelResponse['items'])) {
+            if (preg_match('/https:\/\/www\.youtube\.com\/channel\/([a-zA-Z0-9_-]+)/', $channelQuery, $matches)) {
+                $channelId = $matches[1]; // Extract channel ID from URL
+            } elseif (preg_match('/https:\/\/www\.youtube\.com\/@([a-zA-Z0-9._]+)/', $channelQuery, $matches)) {
+                $username = $matches[1]; // Extract username from URL
+            } else {
+                $username = ltrim($channelQuery, '@'); // Handle direct username input
+            }
+
+            // Fetch channel data
+            $channelResponse = null;
+            if ($channelId) {
+                // Try fetching by channel ID
                 $channelResponse = $this->youtube->channels->listChannels(['snippet', 'statistics', 'brandingSettings'], [
-                    'forUsername' => ltrim($channelQuery, '@'),
+                    'id' => $channelId,
+                ]);
+            } else {
+                // Try fetching by username
+                $channelResponse = $this->youtube->channels->listChannels(['snippet', 'statistics', 'brandingSettings'], [
+                    'forUsername' => $username,
                 ]);
             }
 
             // Check if channel is found
             if (empty($channelResponse['items'])) {
                 Log::warning('Channel not found for query: ' . $channelQuery);
-                return back()->withErrors(['error' => 'Channel not found. Please check the channel ID or username.']);
+                return response()->json(['error' => 'Channel not found. Please check the channel ID or username.'], 404);
             }
 
             $channel = $channelResponse['items'][0];
@@ -320,11 +340,10 @@ class YouTubeScraperController extends Controller
             // Sort videos by view count (descending)
             usort($videos, fn($a, $b) => $b['views'] <=> $a['views']);
 
-
             return response()->json([
                 'channelData' => $channelData,
                 'videos' => $videos,
-                'channelQuery' => $channelQuery
+                'channelQuery' => $channelQuery,
             ], 200);
 
         } catch (\Exception $e) {
@@ -333,7 +352,7 @@ class YouTubeScraperController extends Controller
                 'code' => $e->getCode(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return back()->withErrors(['error' => 'Failed to fetch channel data: ' . $e->getMessage()]);
+            return response()->json(['error' => 'Failed to fetch channel data: ' . $e->getMessage()], 500);
         }
     }
 }
