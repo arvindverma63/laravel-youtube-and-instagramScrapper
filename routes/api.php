@@ -20,4 +20,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::post("/youtube/search",[YouTubeScraperController::class,'searchYoutubeApi']);
-Route::post("/search-instagram",[InstagramScraperController::class,'searchInsatgramApi']);
+Route::post("/search-instagram",[InstagramScraperController::class,'searchInstagramApi']);
