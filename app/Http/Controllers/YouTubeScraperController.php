@@ -271,7 +271,7 @@ class YouTubeScraperController extends Controller
 
     public function searchYoutubeApi(Request $request)
     {
-         $request->validate([
+        $request->validate([
             'channel' => 'required|string',
         ]);
 
@@ -377,6 +377,7 @@ class YouTubeScraperController extends Controller
             ]);
             return back()->withErrors(['error' => 'Failed to fetch channel data: ' . $e->getMessage()]);
         }
+    }
 }
 
 
