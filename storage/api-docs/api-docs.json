@@ -1,0 +1,148 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "YouTube API Scraper",
+        "description": "This API scrapes YouTube channel and video data using the Google YouTube Data API.",
+        "contact": {
+            "name": "API BackendCoders Team",
+            "email": "support@yourdomain.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/youtube/search": {
+            "post": {
+                "tags": [
+                    "YouTube"
+                ],
+                "summary": "Search YouTube channel by ID or username and return channel data with top videos",
+                "operationId": "03d274a2d3454c3dd4ba91f23113ceb0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "channel"
+                                ],
+                                "properties": {
+                                    "channel": {
+                                        "description": "YouTube channel ID or username",
+                                        "type": "string",
+                                        "example": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success response with channel data and top videos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "channelData": {
+                                            "properties": {
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "subscribers": {
+                                                    "type": "string"
+                                                },
+                                                "videoCount": {
+                                                    "type": "integer"
+                                                },
+                                                "viewCount": {
+                                                    "type": "integer"
+                                                },
+                                                "category": {
+                                                    "type": "string"
+                                                },
+                                                "banner": {
+                                                    "type": "string",
+                                                    "format": "url"
+                                                },
+                                                "thumbnail": {
+                                                    "type": "string",
+                                                    "format": "url"
+                                                },
+                                                "publishedAt": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "customUrl": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "videos": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "title": {
+                                                        "type": "string"
+                                                    },
+                                                    "videoId": {
+                                                        "type": "string"
+                                                    },
+                                                    "thumbnail": {
+                                                        "type": "string",
+                                                        "format": "url"
+                                                    },
+                                                    "views": {
+                                                        "type": "integer"
+                                                    },
+                                                    "publishedAt": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    },
+                                                    "likes": {
+                                                        "type": "integer"
+                                                    },
+                                                    "comments": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "channelQuery": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error or channel not found"
+                    },
+                    "500": {
+                        "description": "YouTube API failure"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "YouTube",
+            "description": "YouTube"
+        }
+    ]
+}
